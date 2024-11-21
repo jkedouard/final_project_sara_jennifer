@@ -1,0 +1,47 @@
+---
+title: "Analyzing the Relationship Between NYC's Tree Census and Air Quality"
+author: "Sara Van Valkenburgh and Jennifer Edouard" 
+date: "December 5, 2024"
+format: 
+    html: 
+        code-overflow: wrap
+execute:
+  eval: true
+  echo: true
+  warning: false
+---
+
+## Importing Packages
+
+```{python}
+import altair as alt
+import pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
+from shiny import ui
+```
+
+## Reading in the Data
+
+```{python}
+trees05 = pd.read_csv("data/2005_trees.csv")
+trees15 = pd.read_csv("data/2015_trees.csv")
+air_quality = pd.read_csv("data/air_quality.csv")
+
+# Grouping the tree counts by neighborhood
+trees05_grouped = trees05.groupby("nta_name").size().reset_index(name="tree_count")
+trees05_grouped.to_csv("data/trees05_grouped.csv", index=False)
+
+trees15_grouped = trees15.groupby("nta_name").size().reset_index(name="tree_count")
+trees15_grouped.to_csv("data/trees15_grouped.csv", index=False)
+
+# Filtering the air quality data to only 2005 - 20015
+air_quality["Start_Date"] = pd.to_datetime(air_quality["Start_Date"], format='%m/%d/%Y')
+
+filtered_air_quality = air_quality[
+    (air_quality["Start_Date"] >= '2005-01-01') & 
+    (air_quality["Start_Date"] <= '2015-12-31')
+]
+filtered_air_quality.to_csv("data/filtered_air_quality.csv", index=False)
+```
