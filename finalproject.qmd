@@ -45,3 +45,15 @@ filtered_air_quality = air_quality[
 ]
 filtered_air_quality.to_csv("data/filtered_air_quality.csv", index=False)
 ```
+
+## Static Plots
+
+- choropleth of tree density per NTA in 2005 and 2015 (Sara)
+
+- air quality over time in NYC (Jennifer)
+
+## Dynamic plot (Shiny App)
+
+- input year and neighborhood
+- bar chart comparing air quality in 2005 and 2015
+- tree count in each year 
