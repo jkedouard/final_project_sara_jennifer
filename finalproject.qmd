@@ -1,5 +1,5 @@
 ---
-title: "Analyzing the Relationship Between NYC's Tree Census and Air Quality"
+title: "Analyzing a Relationship Between NYC's Tree Census and Air Quality"
 author: "Sara Van Valkenburgh and Jennifer Edouard" 
 date: "December 5, 2024"
 format: 
@@ -48,9 +48,105 @@ filtered_air_quality.to_csv("data/filtered_air_quality.csv", index=False)
 
 ## Static Plots
 
-- choropleth of tree density per NTA in 2005 and 2015 (Sara)
+- Choropleth of Tree Density per NTA in 2005 and 2015 (Sara)
 
-- air quality over time in NYC (Jennifer)
+- Air Quality Over Time in NYC (Jennifer)
+
+```{python}
+# Filter the data to only include rows where "Geo Type Name" is "Borough"
+borough_data = filtered_air_quality_only_NO2[
+    filtered_air_quality_only_NO2['Geo Type Name'] == 'Borough'
+]
+
+# Define a new column for the decade group with simpler labels
+borough_data['Decade'] = borough_data['Year'].apply(
+    lambda x: "2000s" if 2008 <= x <= 2010 else "2010s" if 2011 <= x <= 2015 else None
+)
+
+# Filter out rows that are not in the defined periods
+borough_data = borough_data.dropna(subset=['Decade'])
+
+# Group by borough and decade, then compute the average NO2 level
+borough_decade_avg = (
+    borough_data.groupby(['Decade', 'Geo Place Name'])['Data Value'].mean().reset_index()
+)
+
+grouped_bar_chart = alt.Chart(borough_decade_avg).mark_bar().encode(
+    x=alt.X('Decade:O', title='Decade', axis=alt.Axis(labelAngle=0)), 
+    y=alt.Y('Data Value:Q', title='Average Nitrogen Dioxide Level (ppb)'),
+    color=alt.Color('Geo Place Name:N', legend=None),  
+    column=alt.Column('Geo Place Name:N', title='Borough')
+).properties(
+    title='Average Nitrogen Dioxide (NO2) Levels by Borough and Decade',
+    width=120,
+    height=200
+)
+
+grouped_bar_chart
+```
+
+```{python}
+# Reading in the borough shapely file
+borough_shapes = gpd.read_file(r"data\shapefiles\geo_export_efd6f6d8-cbf0-4c24-b4ee-a228765d4622.shp")
+print(borough_shapes.head())
+```
+
+```{python}
+reshaped_data = borough_decade_avg.pivot(
+    index='Geo Place Name', 
+    columns='Decade',       
+    values='Data Value'    
+).reset_index()
+
+reshaped_data.columns.name = None  
+reshaped_data = reshaped_data.rename(columns={
+    '2000s': '2000s Air Quality',
+    '2010s': '2010s Air Quality'
+})
+
+reshaped_data["Percentage Change"] = (
+    (reshaped_data["2010s Air Quality"] - reshaped_data["2000s Air Quality"]) /
+    reshaped_data["2000s Air Quality"]
+) * 100
+
+# Checking
+print(reshaped_data)
+```
+
+```{python}
+
+merged_borough_air_quality = borough_shapes.merge(
+    reshaped_data, 
+    left_on='boro_name', 
+    right_on='Geo Place Name' 
+)
+
+fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+
+merged_borough_air_quality.plot(
+    column='Percentage Change',  
+    cmap='Blues_r',              
+    legend=True,                 
+    edgecolor='black',       
+    ax=ax                        
+)
+
+for idx, row in merged_borough_air_quality.iterrows():
+    ax.text(
+        row.geometry.centroid.x, 
+        row.geometry.centroid.y, 
+        row['Geo Place Name'],   
+        fontsize=9,              
+        ha='center',            
+        color='black'         
+    )
+
+ax.set_title('Percentage Change in Air Quality by Borough (2000s to 2010s)', fontsize=14)
+
+plt.axis('off')  
+plt.show()
+```
+
 
 ## Dynamic plot (Shiny App)
 
