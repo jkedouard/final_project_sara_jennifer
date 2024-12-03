@@ -129,7 +129,7 @@ plt.axis("off")
 ```
 
 
-## Plot showing difference in tree count between 2005 and 2015
+### Plot showing difference in tree count between 2005 and 2015
 ```{python}
 # merge 2005 and 2015 data frames by NTA
 trees_planted = pd.merge(trees05_grouped, trees15_grouped, on='NTACode', suffixes=('_2005', '_2015'))
@@ -183,83 +183,68 @@ trees_grouped_borough["trees_diff"] = trees_grouped_borough[2015] - trees_groupe
 trees_grouped_borough = trees_grouped_borough.rename(columns={"nta": "NTACode"})
 
 # trees_grouped_borough.to_csv("final-app/trees_grouped_borough.csv", index=False)
+
+# borough shape file
+borough_shapes = gpd.read_file("data/shapefiles/geo_export_efd6f6d8-cbf0-4c24-b4ee-a228765d4622.shp")
+borough_shapes.plot()
+
+# make sure column names match for merge
+trees_grouped_borough = trees_grouped_borough.rename(columns={"borough": "boro_name"})
+
+# merge data frames together
+merged_borough_map = borough_shapes.merge(trees_grouped_borough, how='left', on='boro_name' )
+merged_borough_map = merged_borough_map.rename(columns={2005: '2005', 2015: '2015'})
 ```
 
 ### 2005
 ```{python}
-# make sure column names match for merge
-trees_grouped_borough = trees_grouped_borough.rename(columns={"borough": "BoroName"})
-```
+# make 2005 choropleth
+ax = merged_borough_map.plot(column='2005', cmap='Greens',
+                             linewidth=0.1, edgecolor='0.8', legend=True)
 
-```{python}
-# merge data frames together
-merged_borough_map = borough_data.merge(trees_grouped_borough, how='left', on='BoroName' )
-```
-
-```{python}
-# create the choropleth
-merged_borough_map.plot(column='2005', cmap='Greens',
-                linewidth=0.1, edgecolor='0.8', legend=True)
 plt.title("Number of Trees by Borough in New York City - 2005 Tree Census", fontsize=15)
-plt.axis("off")
-```
+for idx, row in merged_borough_map.iterrows():
+    borough_name = row['boro_name']
+    centroid = row['geometry'].centroid
+    plt.annotate(borough_name, xy=(centroid.x, centroid.y),
+                 xytext=(3, 3), textcoords='offset points',
+                 fontsize=8, color='black', ha='center')
 
+plt.axis("off")
+plt.show()
+```
 
 ### 2015
 ```{python}
-# make sure column names match for merge
-trees15_grouped = trees15_grouped.rename(columns={"nta": "NTACode"})
-```
-
-```{python}
 # make 2015 choropleth
-# merge data frames together
-merged_15_map = nyc_shp.merge(trees15_grouped, how='left', on='NTACode' )
-```
+ax = merged_borough_map.plot(column='2015', cmap='Greens',
+                             linewidth=0.1, edgecolor='0.8', legend=True)
 
-```{python}
-# create the choropleth
-merged_15_map.plot(column='tree_count', cmap='Greens',
-                linewidth=0.1, edgecolor='0.8', legend=True)
-plt.title("Number of Trees by Neighborhood in New York City - 2015 Tree Census", fontsize=15)
+plt.title("Number of Trees by Borough in New York City - 2015 Tree Census", fontsize=15)
+for idx, row in merged_borough_map.iterrows():
+    borough_name = row['boro_name']
+    centroid = row['geometry'].centroid
+    plt.annotate(borough_name, xy=(centroid.x, centroid.y),
+                 xytext=(3, 3), textcoords='offset points',
+                 fontsize=8, color='black', ha='center')
+
 plt.axis("off")
+plt.show()
 ```
 
-
-## Plot showing difference in tree count between 2005 and 2015
+### Plot showing difference in tree count between 2005 and 2015
 ```{python}
-# merge 2005 and 2015 data frames by NTA
-trees_planted = pd.merge(trees05_grouped, trees15_grouped, on='NTACode', suffixes=('_2005', '_2015'))
+ax = merged_borough_map.plot(column='trees_diff', cmap='Reds',
+                             linewidth=0.1, edgecolor='0.8', legend=True)
 
-# calculate the number of trees planted between 2005 and 2015
-trees_planted['trees_planted'] = trees_planted['tree_count_2015'] - trees_planted['tree_count_2005']
+plt.title("Increase in Tree Count from 2005 to 2015 by Borough", fontsize=15)
+for idx, row in merged_borough_map.iterrows():
+    borough_name = row['boro_name']
+    centroid = row['geometry'].centroid
+    plt.annotate(borough_name, xy=(centroid.x, centroid.y),
+                 xytext=(3, 3), textcoords='offset points',
+                 fontsize=8, color='black', ha='center')
 
-# save as csv
-trees_planted.to_csv("final-app/trees_planted.csv", index=False)
-```
-
-```{python}
-# merge the NTA boundary shapefile with the tree planting data
-trees_planted_map = nyc_shp.merge(trees_planted, how='left', on='NTACode')
-```
-
-```{python}
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-
-cmap = mcolors.LinearSegmentedColormap.from_list(
-    'custom_cmap', ['red', 'white', 'green'])
-
-# Set normalization so that 0 is the neutral point
-norm = mcolors.TwoSlopeNorm(vmin=trees_planted_map['trees_planted'].min(), 
-                            vcenter=0, vmax=trees_planted_map['trees_planted'].max())
-
-# Plot the choropleth map with the custom color map
-trees_planted_map.plot(column='trees_planted', cmap=cmap, norm=norm,
-                       linewidth=0.2, edgecolor='0.8', legend=True)
-
-# Add a title and other plot settings
-plt.title("Difference in Tree Count from 2005 to 2015 by Neighborhood", fontsize=15)
 plt.axis("off")
 plt.show()
 ```
