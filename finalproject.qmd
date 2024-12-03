@@ -36,14 +36,15 @@ trees05_grouped.to_csv("data/trees05_grouped.csv", index=False)
 trees15_grouped = trees15.groupby("nta").size().reset_index(name="tree_count")
 trees15_grouped.to_csv("data/trees15_grouped.csv", index=False)
 
-# Filtering the air quality data to only 2005 - 20015
-air_quality["Start_Date"] = pd.to_datetime(air_quality["Start_Date"], format='%m/%d/%Y')
+# Taking only the air quality data from the 2000s and 2010s
+air_quality["Start_Date"] = pd.to_datetime(air_quality["Start_Date"])
+air_quality["Year"] = air_quality["Start_Date"].dt.year
+air_quality = air_quality[(air_quality["Year"] >= 2000) & (air_quality["Year"] <= 2019)]
 
-filtered_air_quality = air_quality[
-    (air_quality["Start_Date"] >= '2005-01-01') & 
-    (air_quality["Start_Date"] <= '2015-12-31')
+# Filtering the air quality data to only contain the observations that use NO2 as their air quality measurement
+filtered_air_quality_only_NO2 = air_quality[
+    air_quality["Name"] == "Nitrogen dioxide (NO2)"
 ]
-filtered_air_quality.to_csv("data/filtered_air_quality.csv", index=False)
 ```
 
 ```{python}
@@ -259,7 +260,7 @@ borough_data = filtered_air_quality_only_NO2[
 
 # Define a new column for the decade group with simpler labels
 borough_data['Decade'] = borough_data['Year'].apply(
-    lambda x: "2000s" if 2008 <= x <= 2010 else "2010s" if 2011 <= x <= 2015 else None
+    lambda x: "2000s" if 2008 <= x <= 2009 else "2010s" if 2010 <= x <= 2019 else None
 )
 
 # Filter out rows that are not in the defined periods
