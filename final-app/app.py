@@ -7,7 +7,13 @@ import altair as alt
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
+
 full_data_df = pd.read_csv("trees_grouped.csv")
+full_data_df = full_data_df.rename(columns={"borough": "boro_name", "nta": "NTACode"})
+
+full_data_borough = pd.read_csv("trees_grouped_borough.csv")
+full_data_borough = full_data_borough.rename(columns={"borough": "boro_name", "nta": "NTACode"})
+
 full_data_df = full_data_df.rename(columns={"borough": "boro_name", "nta": "NTACode"})
 
 full_data_borough = pd.read_csv("trees_grouped_borough.csv")
@@ -71,6 +77,7 @@ def server(input, output, session):
     @reactive.calc
     def full_data():
         return full_data_df  
+        return full_data_df  
 
     @reactive.calc
     def full_data_borough():
@@ -98,6 +105,7 @@ def server(input, output, session):
     def merged_data_borough():
         data = full_data_borough()
         geo = geo_data_borough()
+        merged = geo.merge(data, how='left', on='boro_name')  
         merged = geo.merge(data, how='left', on='boro_name')  
         merged = merged.to_crs(epsg=4326)
         merged["geometry_json"] = merged["geometry"].apply(
