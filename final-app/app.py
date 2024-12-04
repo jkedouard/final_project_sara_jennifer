@@ -201,7 +201,7 @@ def server(input, output, session):
             fill="green", stroke="black", opacity=0.9
         ).encode(
             shape="geometry_json",
-            tooltip=["boro_name", "tree_count"]
+            tooltip=["boro_name", "trees_diff"]
         )
 
         chart = base_map + highlight_layer
