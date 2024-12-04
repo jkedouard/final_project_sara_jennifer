@@ -13,7 +13,7 @@ dropdown_choices = full_data_df['nta_name'].unique().tolist()
 
 app_ui = ui.page_fluid(
     ui.page_auto(
-        title="Tree Density vs. Air Quality in New York City", theme=theme.journal),
+        title="Tree Density in New York City", theme=theme.journal),
     ui.navset_pill_list(
         ui.nav_panel(
             "Tree Density by Neighborhood Tabulation Area (NTA)",
