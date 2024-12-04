@@ -72,7 +72,7 @@ trees_grouped["trees_diff"] = trees_grouped[2015] - trees_grouped[2005]
 
 trees_grouped = trees_grouped.rename(columns={"nta": "NTACode"})
 
-#trees_grouped.to_csv("final-app/trees_grouped.csv", index=False)
+trees_grouped.to_csv("final-app/trees_grouped.csv", index=False)
 ```
 
 # Static Plots
@@ -182,7 +182,7 @@ trees_grouped_borough["trees_diff"] = trees_grouped_borough[2015] - trees_groupe
 
 trees_grouped_borough = trees_grouped_borough.rename(columns={"nta": "NTACode"})
 
-# trees_grouped_borough.to_csv("final-app/trees_grouped_borough.csv", index=False)
+trees_grouped_borough.to_csv("final-app/trees_grouped_borough.csv", index=False)
 
 # borough shape file
 borough_shapes = gpd.read_file("data/shapefiles/geo_export_efd6f6d8-cbf0-4c24-b4ee-a228765d4622.shp")
