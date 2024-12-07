@@ -2,6 +2,9 @@
 title: "Analyzing a Relationship Between NYC's Tree Census and Air Quality"
 author: "Sara Van Valkenburgh and Jennifer Edouard" 
 date: "December 5, 2024"
+geometry: 
+    - margin=0.75in
+fontsize: 10pt
 format: 
     html: 
         code-overflow: wrap
@@ -11,20 +14,46 @@ execute:
   warning: false
 ---
 
-## Importing Packages
 
 ```{python}
+#| echo: false
+#| eval: false
+
+## Importing Packages
 import altair as alt
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-from bs4 import BeautifulSoup
 from shiny import ui
 ```
 
-## Reading in the Data and Data Wrangling
+```{python}
+#| echo: false
+#| eval: false
+
+# Data sources
+
+# Tree data:
+# https://data.cityofnewyork.us/Environment/2005-Street-Tree-Census/29bw-z7pj/data
+# https://data.cityofnewyork.us/Environment/2005-Street-Tree-Census/29bw-z7pj/about_data
+
+# Air quality data:
+# https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r/about_data
+
+# Borough Shapefiles:
+# https://data.cityofnewyork.us/City-Government/Borough-Boundaries/tqmj-j8zm 
+
+# NTA Shapefiles:
+# https://data.cityofnewyork.us/City-Government/NTA-map/d3qk-pfyz
+
+```
 
 ```{python}
+#| echo: false
+#| eval: false
+
+## Reading in the Data and Data Wrangling
+
 trees05 = pd.read_csv("data/2005_trees.csv")
 trees15 = pd.read_csv("data/2015_trees.csv")
 air_quality = pd.read_csv("data/air_quality.csv")
@@ -48,6 +77,9 @@ filtered_air_quality_only_NO2 = air_quality[
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # Add a year column to each DataFrame
 trees05['year'] = 2005
 trees15['year'] = 2015
@@ -61,6 +93,9 @@ merged_trees = pd.concat([trees05, trees15], ignore_index=True)
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # Group by neighborhood
 trees_grouped = merged_trees.groupby(["nta", "nta_name", "year"]).size().reset_index(name="tree_count")
 
@@ -76,12 +111,14 @@ trees_grouped = trees_grouped.rename(columns={"nta": "NTACode"})
 trees_grouped.to_csv("final-app/trees_grouped.csv", index=False)
 ```
 
+```{python}
+#| echo: false
+#| eval: false
+
 # Static Plots
 
 ## Choropleth of tree density per NTA in 2005 and 2015 (Sara)
 
-### 2005
-```{python}
 # Load the nta .shp file
 nyc_shp = gpd.read_file("data/shapefiles/nynta.shp")
 
@@ -90,17 +127,26 @@ nyc_shp.plot()
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # make sure column names match for merge
 trees05_grouped = trees05_grouped.rename(columns={"nta": "NTACode"})
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # make 2005 choropleth
 # merge data frames together
 merged_05_map = nyc_shp.merge(trees05_grouped, how='left', on='NTACode' )
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # create the choropleth
 merged_05_map.plot(column='tree_count', cmap='Greens',
                 linewidth=0.1, edgecolor='0.8', legend=True)
@@ -108,20 +154,28 @@ plt.title("Number of Trees by Neighborhood in New York City - 2005 Tree Census",
 plt.axis("off")
 ```
 
+```{python}
+#| echo: false
+#| eval: false
 
 ### 2015
-```{python}
 # make sure column names match for merge
 trees15_grouped = trees15_grouped.rename(columns={"nta": "NTACode"})
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # make 2015 choropleth
 # merge data frames together
 merged_15_map = nyc_shp.merge(trees15_grouped, how='left', on='NTACode' )
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # create the choropleth
 merged_15_map.plot(column='tree_count', cmap='Greens',
                 linewidth=0.1, edgecolor='0.8', legend=True)
@@ -129,9 +183,11 @@ plt.title("Number of Trees by Neighborhood in New York City - 2015 Tree Census",
 plt.axis("off")
 ```
 
+```{python}
+#| echo: false
+#| eval: false
 
 ### Plot showing difference in tree count between 2005 and 2015
-```{python}
 # merge 2005 and 2015 data frames by NTA
 trees_planted = pd.merge(trees05_grouped, trees15_grouped, on='NTACode', suffixes=('_2005', '_2015'))
 
@@ -143,11 +199,17 @@ trees_planted['trees_planted'] = trees_planted['tree_count_2015'] - trees_plante
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # merge the NTA boundary shapefile with the tree planting data
 trees_planted_map = nyc_shp.merge(trees_planted, how='left', on='NTACode')
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -168,9 +230,12 @@ plt.axis("off")
 plt.show()
 ```
 
+```{python}
+#| echo: false
+#| eval: false
+
 ### Choropleth of tree density per Borough in 2005 and 2015
 
-```{python}
 # Group by borough
 trees_grouped_borough = merged_trees.groupby(["borough", "year"]).size().reset_index(name="tree_count")
 
@@ -197,8 +262,10 @@ merged_borough_map = borough_shapes.merge(trees_grouped_borough, how='left', on=
 merged_borough_map = merged_borough_map.rename(columns={2005: '2005', 2015: '2015'})
 ```
 
-### 2005
 ```{python}
+#| echo: false
+#| eval: false
+
 # make 2005 choropleth
 ax = merged_borough_map.plot(column='2005', cmap='Greens',
                              linewidth=0.1, edgecolor='0.8', legend=True)
@@ -215,8 +282,10 @@ plt.axis("off")
 plt.show()
 ```
 
-### 2015
 ```{python}
+#| echo: false
+#| eval: false
+
 # make 2015 choropleth
 ax = merged_borough_map.plot(column='2015', cmap='Greens',
                              linewidth=0.1, edgecolor='0.8', legend=True)
@@ -233,8 +302,11 @@ plt.axis("off")
 plt.show()
 ```
 
-### Plot showing difference in tree count between 2005 and 2015
 ```{python}
+#| echo: false
+#| eval: false
+
+### Plot showing difference in tree count between 2005 and 2015
 ax = merged_borough_map.plot(column='trees_diff', cmap='Reds',
                              linewidth=0.1, edgecolor='0.8', legend=True)
 
@@ -250,9 +322,11 @@ plt.axis("off")
 plt.show()
 ```
 
-## Air quality over time (Jennifer )
-
 ```{python}
+#| echo: false
+#| eval: false
+
+## Air quality over time (Jennifer)
 # Filter the data to only include rows where "Geo Type Name" is "Borough"
 borough_data = filtered_air_quality_only_NO2[
     filtered_air_quality_only_NO2['Geo Type Name'] == 'Borough'
@@ -286,12 +360,18 @@ grouped_bar_chart
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # Reading in the borough shapely file
 borough_shapes = gpd.read_file("data/shapefiles/geo_export_efd6f6d8-cbf0-4c24-b4ee-a228765d4622.shp")
 print(borough_shapes.head())
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 reshaped_data = borough_decade_avg.pivot(
     index='Geo Place Name', 
     columns='Decade',       
@@ -314,6 +394,8 @@ print(reshaped_data)
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
 
 merged_borough_air_quality = borough_shapes.merge(
     reshaped_data, 
@@ -347,9 +429,47 @@ plt.axis('off')
 plt.show()
 ```
 
+# Research Question 
 
-## Dynamic plot (Shiny App)
+Is increasing the number of trees in New York City positively correlated with better air quality? 
 
-- input year and neighborhood
-- bar chart comparing air quality in 2005 and 2015
-- tree count in each year 
+# Approach 
+
+## General Approach 
+
+For our analysis, we first gathered data on air quality in New York City, covering the period from 2005 to 2015. This dataset provided insights into the levels of various pollutants in the city over a ten-year span, which served as a key component in understanding environmental trends and their potential correlation with other variables. In addition to the air quality data, we also collected tree census data for New York City. Specifically, we obtained census data for the years 2005, which corresponds to the 2000s decade, and 2015, which corresponds to the 2010s decade.  
+
+To support spatial analysis, we first attempted to use Neighborhood Tabulation Areas (NTAs) to see if we could find a correlation at a more granular level than boroughs. However, the air quality data used different defined areas than the tree census, and we encountered difficulties when attempting to tie the data sets together. We then switched to using shapefiles for the boroughs of New York City. These shapefiles define the geographical boundaries of each borough, which enabled us to perform geographic visualizations and analyses, such as mapping air quality levels and tree distribution across the city’s five boroughs. These shapefiles were essential for linking the environmental data to specific locations within the city. 
+
+We also wanted to make the data dynamic and interactive for users. We designed an application that allows users to explore the changes in tree quantity over time. Because we first tried to use NTAs, the app has a tab in which users can see the number of trees gained or lost between 2005 and 2015 per NTA. We then added a second tab which showcases our analysis by borough. By providing the ability to adjust the decade and borough selection, the application enables users to analyze how tree density has evolved between the 2000s and 2010s in New York City. 
+
+## Difficulties & Limitations Encountered 
+
+In regard to our air quality data, we were unfortunately unable to recover readable data for the years 2005-2007. For the year 2005, the data was inconsistently measured and contained some unique and unnecessary calculations. The dataset did not contain any information for the years 2006-2007. Thus, we were limited to use the data from 2008-2009 to gather air quality data for the 2000s. We used the nitrogen dioxide levels that were calculated in the air, with a lower quantity indicating better air quality. We also encountered difficulties using the NTAs from the tree census data to connect to air quality, as detailed above, which led to us conducting our analysis by borough. While this is still helpful, it is not as granular an analysis as one conducted by neighborhood. 
+
+# Static Plots
+Our first static plot shows the difference in air quality from the 2000s to the 2010s:
+
+![Average BO2 Levels by Borough and Decade](pictures/visualization.png){ width=400 }
+
+By producing separate bar plots for each borough, we can collect a few pieces of valuable information. First, all the boroughs saw a decrease in nitrogen dioxide! This is good news. It means that, over time, the estimated air quality is increasing in New York City. Second, Manhattan is, in both decades, the highest in Nitrogen Dioxide particles per billion. Manhattan is an incredibly dense borough, meaning the traffic density and large buildings that expel fumes may contribute to its lower air quality relative to the other four boroughs.  
+
+In our first analysis using NTAs, we produced a plot showing the difference in tree count from 2005 to 2015 by neighborhood:
+
+![Difference in Tree Count by Neighborhood](pictures/Diff%20in%20Tree%20Count.png){ width=400 } 
+
+The plot above shows neighborhoods that lost trees in shades of red, and the neighborhoods that gained trees in shades of green. This was a basis for the idea behind our dynamic app. When we switched to an analysis at the borough-level, we decided it would be helpful to put our air quality data onto a map of New York City to analyze relative percentage changes in Nitrogen Dioxide. Here is that plot, along with a static plot showing the increase in number of trees by borough from 2005 to 2015.  
+
+![Air Quality by Borough](pictures/percent%20change.png){ width=300 } 
+![Difference in Tree Count by Borough](pictures/output.png){ width=300 } 
+
+As you can see, the tree count in Brooklyn and the Bronx increased the most, followed by Manhattan, then Queens, and lastly Staten Island. Air quality in each borough also improved over time, with the most significant improvement in Manhattan, followed by Brooklyn, the Bronx, Queens, and Staten Island. This shows that, while Manhattan had the highest levels of Nitrogen Dioxide in both decades, it also experienced the steepest decrease in pollution levels, and a significant increase in the number of trees. Outside of Manhattan, the correlation between trees gained and reductions in Nitrogen Dioxide is in line with expectations. Overall, the range of percentage decreases in Nitrogen Dioxide showed low variance, which is encouraging. Rather than concentrated or erratic changes that might raise questions about the data, we can see that New York City is experiencing more consistent, citywide improvements. 
+
+# Dynamic Shiny App
+
+Our dynamic app provides an interactive platform for exploring changes in urban greenery across New York City. Users can dynamically select specific neighborhood areas to analyze how the number of trees has shifted between the 2000s and the 2010s. The app uses a map of New York City to highlight which neighborhood the user has selected, and hovering over it shows the difference in number of trees from decade to decade. If the area lost trees, it appears in red, and if it gained trees, it appears in green. App users can also analyze tree quantity changes at the borough level by switching to the "Borough" tab and selecting one of the five. 
+
+# Future Work
+
+* Our data shows an increase in the number of trees along with air quality improvement. New York City should look at investing in higher forestation – what is the cost of this?  
+* Air quality is not solely dependent on tree density levels, so what other factors can we address to increase air quality in New York City? Who should that responsibility fall to? If we had data on other factors, we would be able to attempt to establish a causal relationship through regression instead of just an association. 
